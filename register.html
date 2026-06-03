@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register for Bottle Recycling | GEO India Foundation</title>
+    <meta
+      name="description"
+      content="Register for GEO India Foundation's bottle recycling tracker. Submit one bottle per QR scan and unlock an appreciation certificate after 50 bottles."
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#0078a7" />
+    <meta property="og:title" content="Register for Bottle Recycling | GEO India Foundation" />
+    <meta
+      property="og:description"
+      content="Register once for the Namma Ooru Namma Poruppu bottle recycling tracker and start recording your bottle submissions."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="GEO India Foundation" />
+    <meta property="og:image" content="./assets/client-logo-header.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Register for Bottle Recycling | GEO India Foundation" />
+    <meta
+      name="twitter:description"
+      content="Register for the Namma Ooru Namma Poruppu bottle recycling tracker and unlock an appreciation certificate."
+    />
+    <link rel="canonical" href="./register.html" />
+    <link rel="preload" as="image" href="./assets/client-logo-header.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="register-page">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="./index.html" aria-label="GEO India Foundation home">
+          <img src="./assets/client-logo-header.png" alt="GEO India Foundation" width="1718" height="1109" />
+        </a>
+
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mainNav">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <nav id="mainNav" class="main-nav" aria-label="Main navigation">
+          <div class="nav-inner">
+            <a class="nav-link" href="./index.html">Home</a>
+            <a class="nav-link" href="./index.html#whoWeAre">Who We Are</a>
+            <a class="nav-link" href="./index.html#whereWeWork">Where We Work</a>
+            <a class="nav-link" href="./index.html#whatWeDo">What We Do</a>
+            <a class="nav-link" href="./index.html#photoStoriesTitle">Gallery</a>
+            <a class="nav-link" href="./index.html#footerContact">Contact Us</a>
+          </div>
+        </nav>
+
+        <a class="donate-button" href="https://whatsapp.com/channel/0029VbCBayz9Bb5wHMTVNw3T" target="_blank" rel="noopener">
+          <svg class="donate-icon" aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+            <path d="M12 21s-7.5-4.7-9.6-9.1C.7 8.3 2.8 4.5 6.5 4.5c2 0 3.6 1.1 4.5 2.5.9-1.4 2.5-2.5 4.5-2.5 3.7 0 5.8 3.8 4.1 7.4C19.5 16.3 12 21 12 21z" />
+          </svg>
+          Join Us
+        </a>
+      </div>
+    </header>
+
+    <main id="main">
+      <section id="register" class="recycle-section register-main register-only-section" aria-labelledby="registerTitle">
+        <div class="container register-only-shell">
+          <div class="recycle-card" data-view="register">
+            <form class="register-form" aria-label="Register for bottle recycling">
+              <h1 id="registerTitle">Register Now</h1>
+              <label for="userName">Full name</label>
+              <input id="userName" name="userName" type="text" autocomplete="name" required />
+
+              <label for="userEmail">Email</label>
+              <input id="userEmail" name="userEmail" type="email" autocomplete="email" required />
+
+              <label for="userPhone">Phone number</label>
+              <input
+                id="userPhone"
+                name="userPhone"
+                type="tel"
+                inputmode="tel"
+                autocomplete="tel"
+                pattern="[0-9+() -]{7,}"
+                required
+              />
+
+              <button class="primary-action" type="submit">Submit</button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="./script.js" defer></script>
+  </body>
+</html>
