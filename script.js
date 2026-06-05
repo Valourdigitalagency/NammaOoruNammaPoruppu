@@ -6,7 +6,8 @@ const closeSearch = document.querySelector('.close-search')
 const newsletterForm = document.querySelector('.newsletter-form')
 
 const STORAGE_KEY = 'geoBottleRecycler'
-const GOAL_COUNT = 50
+const GOAL_COUNT = 100000000
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaiT8B7YjAoe_TeM7qKn0uDZAa8rJu8uNn3EKsJdLSDJe6eZANrWvpvno3fYjFgjTd0w/exec'
 
 const heroRegister = document.querySelector('.hero-register')
 const recycleSection = document.querySelector('.recycle-section')
@@ -62,6 +63,27 @@ function getRecycler() {
 
 function saveRecycler(recycler) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(recycler))
+}
+
+async function sendToGoogleSheet(payload) {
+  if (!GOOGLE_SCRIPT_URL) return false
+
+  const body = new URLSearchParams()
+  Object.entries(payload).forEach(([key, value]) => {
+    body.append(key, value == null ? '' : String(value))
+  })
+
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      keepalive: true,
+      body,
+    })
+    return true
+  } catch {
+    return navigator.sendBeacon?.(GOOGLE_SCRIPT_URL, body) || false
+  }
 }
 
 function setFlowView(view) {
@@ -135,7 +157,7 @@ function celebrate() {
   })
 }
 
-registerForm?.addEventListener('submit', (event) => {
+registerForm?.addEventListener('submit', async (event) => {
   event.preventDefault()
 
   const formData = new FormData(registerForm)
@@ -145,12 +167,35 @@ registerForm?.addEventListener('submit', (event) => {
 
   if (!name || !email || !phone) return
 
-  saveRecycler({
+  const registeredAt = new Date().toISOString()
+  const recycler = {
     name,
     email,
     phone,
     count: 0,
-    registeredAt: new Date().toISOString(),
+    registeredAt,
+  }
+
+  saveRecycler(recycler)
+  const submitButton = registerForm.querySelector('button[type="submit"]')
+  if (submitButton) {
+    submitButton.textContent = 'Saving...'
+    submitButton.disabled = true
+  }
+
+  await sendToGoogleSheet({
+    action: 'register',
+    username: name,
+    emailId: email,
+    phoneNumber: phone,
+    name,
+    email,
+    phone,
+    bottleCount: 0,
+    totalBottleCount: 0,
+    count: 0,
+    registeredAt,
+    timestamp: registeredAt,
   })
 
   submittedThisPageOpen = false
@@ -158,7 +203,7 @@ registerForm?.addEventListener('submit', (event) => {
   window.location.href = './index.html#bottleDashboard'
 })
 
-bottleForm?.addEventListener('submit', (event) => {
+bottleForm?.addEventListener('submit', async (event) => {
   event.preventDefault()
 
   if (submittedThisPageOpen) return
@@ -173,9 +218,29 @@ bottleForm?.addEventListener('submit', (event) => {
   recycler.count = Math.min(GOAL_COUNT, (Number(recycler.count) || 0) + bottleCount)
   recycler.lastSubmittedAt = new Date().toISOString()
   saveRecycler(recycler)
-
   submittedThisPageOpen = true
   const submitButton = bottleForm.querySelector('button[type="submit"]')
+  if (submitButton) {
+    submitButton.textContent = 'Saving...'
+    submitButton.disabled = true
+  }
+
+  await sendToGoogleSheet({
+    action: 'bottle_submit',
+    username: recycler.name,
+    emailId: recycler.email,
+    phoneNumber: recycler.phone,
+    name: recycler.name,
+    email: recycler.email,
+    phone: recycler.phone,
+    bottleCount,
+    totalBottleCount: recycler.count,
+    submittedBottles: bottleCount,
+    totalBottles: recycler.count,
+    lastSubmittedAt: recycler.lastSubmittedAt,
+    timestamp: recycler.lastSubmittedAt,
+  })
+
   if (submitButton) {
     submitButton.textContent = 'Bottle Submitted'
     submitButton.disabled = true
