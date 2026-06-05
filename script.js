@@ -6,7 +6,7 @@ const closeSearch = document.querySelector('.close-search')
 const newsletterForm = document.querySelector('.newsletter-form')
 
 const STORAGE_KEY = 'geoBottleRecycler'
-const GOAL_COUNT = 100000000
+const GOAL_COUNT = 50
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyOL0cezYmxCw5-uWSqLf3S2wttpUbQfvc0X6iSmhtEK-N17i8BP5GnfN2_Yub7r0vF/exec'
 
 const heroRegister = document.querySelector('.hero-register')
