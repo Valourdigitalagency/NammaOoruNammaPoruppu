@@ -591,6 +591,22 @@ h1 {
   line-height: 1.45;
 }
 
+.form-status {
+  margin: 2px 0 0;
+  color: #31485f;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.form-status[data-type="success"] {
+  color: #09833f;
+}
+
+.form-status[data-type="error"] {
+  color: #b42318;
+}
+
 .celebration-layer {
   pointer-events: none;
   position: absolute;
