@@ -7,8 +7,7 @@ const newsletterForm = document.querySelector('.newsletter-form')
 
 const STORAGE_KEY = 'geoBottleRecycler'
 const GOAL_COUNT = 100000000
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaiT8B7YjAoe_TeM7qKn0uDZAa8rJu8uNn3EKsJdLSDJe6eZANrWvpvno3fYjFgjTd0w/exec'
-
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyziyQCmPCigTBxJv8TQdi4Xw7zCrv399B8c4VKyOl_yTWFH5Tj77MK4sP8k4Fp3-uomQ/exec'
 const heroRegister = document.querySelector('.hero-register')
 const recycleSection = document.querySelector('.recycle-section')
 const bottleDashboard = document.querySelector('#bottleDashboard')
