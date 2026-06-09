@@ -7,7 +7,7 @@ const newsletterForm = document.querySelector('.newsletter-form')
 
 const STORAGE_KEY = 'geoBottleRecycler'
 const GOAL_COUNT = 50
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyOL0cezYmxCw5-uWSqLf3S2wttpUbQfvc0X6iSmhtEK-N17i8BP5GnfN2_Yub7r0vF/exec'
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSjzsVhp74Zc5w9UFs36QqOp2kL6ZOnG4T2JB8ym62ppp-fUOoXIudlPihalZGTumu/exec'
 
 const heroRegister = document.querySelector('.hero-register')
 const recycleSection = document.querySelector('.recycle-section')
@@ -23,10 +23,13 @@ const progressPercent = document.querySelector('.progress-percent')
 const progressBar = document.querySelector('.progress-bar')
 const completionMessage = document.querySelector('.completion-message')
 const downloadCertificate = document.querySelector('.download-certificate')
+const registerNewUser = document.querySelector('.register-new-user')
 const certificateSection = document.querySelector('.certificate-preview-section')
 const certificatePreview = document.querySelector('#certificatePreview')
 const certificateName = document.querySelector('.certificate-name')
 const isRegisterPage = document.body.classList.contains('register-page')
+const registerStatus = document.querySelector('.register-status')
+const bottleStatus = document.querySelector('.bottle-status')
 
 let submittedThisPageOpen = false
 
@@ -42,6 +45,12 @@ searchButton?.addEventListener('click', () => {
 
 closeSearch?.addEventListener('click', () => {
   searchPanel.hidden = true
+})
+
+registerNewUser?.addEventListener('click', () => {
+  clearRecycler()
+  submittedThisPageOpen = false
+  window.location.href = './register.html'
 })
 
 newsletterForm?.addEventListener('submit', (event) => {
@@ -65,25 +74,45 @@ function saveRecycler(recycler) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(recycler))
 }
 
+function clearRecycler() {
+  localStorage.removeItem(STORAGE_KEY)
+}
+
+function setStatus(element, message, type = 'info') {
+  if (!element) return
+  element.textContent = message
+  element.dataset.type = type
+  element.hidden = !message
+}
+
+function createParticipantId() {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID()
+  return `participant-${Date.now()}-${Math.random().toString(16).slice(2)}`
+}
+
 async function sendToGoogleSheet(payload) {
-  if (!GOOGLE_SCRIPT_URL) return false
+  if (!GOOGLE_SCRIPT_URL) throw new Error('Google Apps Script URL is not configured.')
 
-  const body = new URLSearchParams()
+  const params = new URLSearchParams()
   Object.entries(payload).forEach(([key, value]) => {
-    body.append(key, value == null ? '' : String(value))
+    params.append(key, value == null ? '' : String(value))
   })
+  params.append('cacheBust', String(Date.now()))
 
-  try {
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      keepalive: true,
-      body,
-    })
-    return true
-  } catch {
-    return navigator.sendBeacon?.(GOOGLE_SCRIPT_URL, body) || false
-  }
+  await new Promise((resolve, reject) => {
+    const image = new Image()
+    const timer = window.setTimeout(resolve, 3500)
+
+    image.onload = () => {
+      window.clearTimeout(timer)
+      resolve()
+    }
+    image.onerror = () => {
+      window.clearTimeout(timer)
+      resolve()
+    }
+    image.src = `${GOOGLE_SCRIPT_URL}?${params.toString()}`
+  })
 }
 
 function setFlowView(view) {
@@ -113,8 +142,8 @@ function renderRecycler() {
   const recycler = getRecycler()
   updateHeroForUser(recycler)
 
-  if (isRegisterPage && recycler) {
-    window.location.href = './index.html#bottleDashboard'
+  if (isRegisterPage) {
+    setFlowView('register')
     return
   }
 
@@ -168,7 +197,9 @@ registerForm?.addEventListener('submit', async (event) => {
   if (!name || !email || !phone) return
 
   const registeredAt = new Date().toISOString()
+  const participantId = createParticipantId()
   const recycler = {
+    participantId,
     name,
     email,
     phone,
@@ -183,20 +214,23 @@ registerForm?.addEventListener('submit', async (event) => {
     submitButton.disabled = true
   }
 
-  await sendToGoogleSheet({
-    action: 'register',
-    username: name,
-    emailId: email,
-    phoneNumber: phone,
-    name,
-    email,
-    phone,
-    bottleCount: 0,
-    totalBottleCount: 0,
-    count: 0,
-    registeredAt,
-    timestamp: registeredAt,
-  })
+  try {
+    setStatus(registerStatus, 'Saving registration...', 'info')
+    await sendToGoogleSheet({
+      username: name,
+      phoneNumber: phone,
+      emailId: email,
+      bottleCount: 0,
+    })
+    setStatus(registerStatus, 'Registration submitted. Check the Sheet to confirm.', 'success')
+  } catch {
+    setStatus(registerStatus, 'Registration is saved on this device. Connect the Google Apps Script URL to save it in the Sheet.', 'error')
+    if (submitButton) {
+      submitButton.textContent = 'Submit'
+      submitButton.disabled = false
+    }
+    return
+  }
 
   submittedThisPageOpen = false
   registerForm.reset()
@@ -215,6 +249,7 @@ bottleForm?.addEventListener('submit', async (event) => {
   }
 
   const bottleCount = Math.min(1, Math.max(1, Number(bottleInput?.value) || 1))
+  const previousCount = Number(recycler.count) || 0
   recycler.count = Math.min(GOAL_COUNT, (Number(recycler.count) || 0) + bottleCount)
   recycler.lastSubmittedAt = new Date().toISOString()
   saveRecycler(recycler)
@@ -225,21 +260,28 @@ bottleForm?.addEventListener('submit', async (event) => {
     submitButton.disabled = true
   }
 
-  await sendToGoogleSheet({
-    action: 'bottle_submit',
-    username: recycler.name,
-    emailId: recycler.email,
-    phoneNumber: recycler.phone,
-    name: recycler.name,
-    email: recycler.email,
-    phone: recycler.phone,
-    bottleCount,
-    totalBottleCount: recycler.count,
-    submittedBottles: bottleCount,
-    totalBottles: recycler.count,
-    lastSubmittedAt: recycler.lastSubmittedAt,
-    timestamp: recycler.lastSubmittedAt,
-  })
+  try {
+    setStatus(bottleStatus, 'Saving bottle submission...', 'info')
+    await sendToGoogleSheet({
+      username: recycler.name,
+      phoneNumber: recycler.phone,
+      emailId: recycler.email,
+      bottleCount: recycler.count,
+    })
+    setStatus(bottleStatus, 'Bottle submission submitted. Check the Sheet to confirm.', 'success')
+  } catch {
+    submittedThisPageOpen = false
+    recycler.count = previousCount
+    delete recycler.lastSubmittedAt
+    saveRecycler(recycler)
+    renderRecycler()
+    setStatus(bottleStatus, 'Could not save to the Sheet. Connect the Google Apps Script URL and try again.', 'error')
+    if (submitButton) {
+      submitButton.textContent = 'Submit Bottle'
+      submitButton.disabled = false
+    }
+    return
+  }
 
   if (submitButton) {
     submitButton.textContent = 'Bottle Submitted'
