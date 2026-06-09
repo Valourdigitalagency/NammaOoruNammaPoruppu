@@ -496,6 +496,7 @@ h1 {
 }
 
 .primary-action,
+.secondary-action,
 .download-certificate {
   display: inline-flex;
   justify-content: center;
@@ -514,6 +515,13 @@ h1 {
 
 .download-certificate {
   background: var(--blue-dark);
+}
+
+.secondary-action {
+  border: 1px solid #bfd6e4;
+  color: var(--blue-dark);
+  background: #ffffff;
+  box-shadow: none;
 }
 
 .download-certificate:disabled {
