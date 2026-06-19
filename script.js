@@ -116,6 +116,18 @@ async function sendToGoogleSheet(payload) {
   })
 }
 
+function sendToGoogleSheetInBackground(payload) {
+  if (!GOOGLE_SCRIPT_URL) return
+
+  const body = new URLSearchParams()
+  Object.entries(payload).forEach(([key, value]) => {
+    body.append(key, value == null ? '' : String(value))
+  })
+
+  if (navigator.sendBeacon?.(GOOGLE_SCRIPT_URL, body)) return
+  sendToGoogleSheet(payload).catch(() => {})
+}
+
 function setFlowView(view) {
   if (!recycleCard) return
 
@@ -154,11 +166,6 @@ function focusBottleDashboardForReturningUser() {
 function renderRecycler() {
   const recycler = getRecycler()
   updateHeroForUser(recycler)
-
-  if (isRegisterPage && recycler) {
-    window.location.href = './index.html#bottleDashboard'
-    return
-  }
 
   if (isRegisterPage) {
     setFlowView('register')
@@ -230,31 +237,22 @@ registerForm?.addEventListener('submit', async (event) => {
   saveRecycler(recycler)
   const submitButton = registerForm.querySelector('button[type="submit"]')
   if (submitButton) {
-    submitButton.textContent = 'Saving...'
+    submitButton.textContent = 'Registered'
     submitButton.disabled = true
   }
 
-  try {
-    setStatus(registerStatus, 'Saving registration...', 'info')
-    await sendToGoogleSheet({
-      username: name,
-      phoneNumber: phone,
-      emailId: email,
-      bottleCount: 0,
-    })
-    setStatus(registerStatus, 'Registration submitted. Check the Sheet to confirm.', 'success')
-  } catch {
-    setStatus(registerStatus, 'Registration is saved on this device. Connect the Google Apps Script URL to save it in the Sheet.', 'error')
-    if (submitButton) {
-      submitButton.textContent = 'Submit'
-      submitButton.disabled = false
-    }
-    return
-  }
-
+  setStatus(registerStatus, 'Registration complete. Opening bottle submission...', 'success')
+  sendToGoogleSheetInBackground({
+    username: name,
+    phoneNumber: phone,
+    emailId: email,
+    bottleCount: 0,
+  })
   submittedThisPageOpen = false
   registerForm.reset()
-  window.location.href = './index.html#bottleDashboard'
+  window.setTimeout(() => {
+    window.location.href = './index.html#bottleDashboard'
+  }, 250)
 })
 
 bottleForm?.addEventListener('submit', async (event) => {
